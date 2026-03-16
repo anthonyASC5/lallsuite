@@ -1,4 +1,5 @@
 import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js";
+import { createComputerExperience } from "./computer.js";
 
 const pedals = [
   {
@@ -92,9 +93,11 @@ const hoverOnlyMeshes = [];
 const walkers = [];
 let walkersEnabled = true;
 let depthEnginePedal = null;
+let computerExperience = null;
 
 let hoveredPedal = null;
 let hoveredInfo = null;
+let manualNow = performance.now();
 
 function createPedalEnvMap() {
   const canvas = document.createElement("canvas");
@@ -1062,6 +1065,12 @@ function main() {
   });
 
   createGuitarProp(new THREE.Vector3(4.8, -0.42, -4.95));
+  computerExperience = createComputerExperience({
+    scene,
+    mount: document.querySelector("#app"),
+    clickableMeshes,
+    hoverOnlyMeshes,
+  });
   createComingSoonGraffiti(new THREE.Vector3(-7.45, .2, 0));
 
   const positions = [
@@ -1087,10 +1096,10 @@ function main() {
   renderer.render(scene, camera);
 }
 
-function findPedal(object) {
+function findInteractiveTarget(object) {
   let current = object;
   while (current) {
-    if (current.userData && current.userData.pedal) {
+    if (current.userData && (current.userData.pedal || current.userData.computer)) {
       return current;
     }
     current = current.parent;
@@ -1153,6 +1162,21 @@ function activatePedal(pedalObject) {
   }, 1400);
 }
 
+function activateInteractiveTarget(targetObject) {
+  if (!targetObject) {
+    return;
+  }
+
+  if (targetObject.userData && targetObject.userData.pedal) {
+    activatePedal(targetObject);
+    return;
+  }
+
+  if (targetObject.userData && targetObject.userData.computer) {
+    targetObject.userData.activate();
+  }
+}
+
 renderer.domElement.addEventListener("pointermove", handlePointerMove);
 renderer.domElement.addEventListener("pointerleave", () => {
   pointer.set(2, 2);
@@ -1161,17 +1185,15 @@ renderer.domElement.addEventListener("pointerleave", () => {
   setTooltip(null);
 });
 
-renderer.domElement.addEventListener("click", () => {
+renderer.domElement.addEventListener("click", (event) => {
+  handlePointerMove(event);
   raycaster.setFromCamera(pointer, camera);
   const hit = raycaster.intersectObjects(clickableMeshes, false)[0];
   if (!hit) {
     return;
   }
 
-  const pedalObject = findPedal(hit.object);
-  if (pedalObject) {
-    activatePedal(pedalObject);
-  }
+  activateInteractiveTarget(findInteractiveTarget(hit.object));
 });
 
 peopleToggle.addEventListener("change", () => {
@@ -1181,20 +1203,20 @@ peopleToggle.addEventListener("change", () => {
   });
 });
 
-function animate() {
-  requestAnimationFrame(animate);
-
+function renderFrame(frameTime = performance.now()) {
+  manualNow = frameTime;
   raycaster.setFromCamera(pointer, camera);
   const hit = raycaster.intersectObjects(clickableMeshes, false)[0];
   const hoverHit = raycaster.intersectObjects([...clickableMeshes, ...hoverOnlyMeshes], false)[0];
-  hoveredPedal = hit ? findPedal(hit.object) : null;
+  const hoveredTarget = hit ? findInteractiveTarget(hit.object) : null;
+  hoveredPedal = hoveredTarget && hoveredTarget.userData.pedal ? hoveredTarget : null;
   hoveredInfo = null;
 
   if (hoverHit) {
     if (hoverHit.object.userData.hoverTarget) {
       hoveredInfo = hoverHit.object.userData.hoverTarget;
     } else {
-      hoveredInfo = findPedal(hoverHit.object);
+      hoveredInfo = findInteractiveTarget(hoverHit.object);
     }
   }
 
@@ -1206,8 +1228,7 @@ function animate() {
     setTooltip(null);
   }
 
-  const now = performance.now();
-  const time = now * 0.001;
+  const time = frameTime * 0.001;
 
   pedalObjects.forEach((pedalObject, index) => {
     const isHovered = hoveredPedal === pedalObject;
@@ -1222,14 +1243,20 @@ function animate() {
     data.led.material.emissiveIntensity = 0.55 + Math.sin(time * 2.2 + index) * 0.12 + data.hover * 0.9;
     data.body.material.shininess = isHovered ? 120 : 90;
 
-    if (now < data.clickCooldown) {
+    if (frameTime < data.clickCooldown) {
       data.press = 0.65;
     }
   });
 
   walkers.forEach((walker) => {
-    walker.update(now, hoveredPedal);
+    walker.update(frameTime, hoveredPedal);
   });
+
+  if (computerExperience) {
+    const computerHovered =
+      hoveredTarget === computerExperience.group || hoveredInfo === computerExperience.group;
+    computerExperience.update(frameTime, computerHovered);
+  }
 
   hoverOnlyMeshes.forEach((mesh) => {
     if (mesh.userData.hoverTarget && mesh.userData.hoverTarget.userData.hoverMaterial) {
@@ -1241,6 +1268,11 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+function animate(now) {
+  requestAnimationFrame(animate);
+  renderFrame(now);
+}
+
 function resize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -1249,6 +1281,27 @@ function resize() {
 }
 
 window.addEventListener("resize", resize);
+
+window.render_game_to_text = () =>
+  JSON.stringify({
+    coordinateSystem: "origin at scene center, +x right, +y up, +z toward the camera",
+    hovered: hoveredInfo?.userData?.pedal?.name || hoveredInfo?.userData?.title || null,
+    walkersEnabled,
+    retroWindowOpen: computerExperience ? computerExperience.isOpen() : false,
+    computer: computerExperience ? computerExperience.getState() : null,
+    guitar: { x: 4.8, y: -0.42, z: -4.95 },
+    pedals: pedalObjects.map((pedalObject) => ({
+      name: pedalObject.userData.pedal.name,
+      x: Number(pedalObject.position.x.toFixed(2)),
+      y: Number(pedalObject.position.y.toFixed(2)),
+      z: Number(pedalObject.position.z.toFixed(2)),
+    })),
+  });
+
+window.advanceTime = (ms) => {
+  manualNow += ms;
+  renderFrame(manualNow);
+};
 
 main();
 animate();
