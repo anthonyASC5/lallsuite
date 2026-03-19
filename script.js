@@ -2,6 +2,7 @@ import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/thr
 import { createComputerExperience } from "./computer.js";
 
 const pedals = [
+  // Blob Tracker pedal properties
   {
     name: "Blob Tracker",
     description:
@@ -12,6 +13,7 @@ const pedals = [
     status: "live",
     size: "large",
   },
+  // Depth Engine pedal properties
   {
     name: "Depth Engine",
     description:
@@ -22,6 +24,7 @@ const pedals = [
     status: "live",
     size: "xlarge",
   },
+  // Portfolio pedal properties
   {
     name: "Portfolio",
     description:
@@ -32,6 +35,29 @@ const pedals = [
     status: "live",
     size: "large",
   },
+  // DATAMOSH pedal properties
+  {
+    name: "DATAMOSH",
+    description:
+      "Datamosh web app for glitching footage with broken-frame transitions, smeared motion, and compression-driven artifacts.",
+    color: "#ff8c1a",
+    ledColor: "#ffb457",
+    url: "https://anthonyasc5.github.io/datamoshme/",
+    status: "in-progress",
+    size: "small",
+  },
+  // L4VFX pedal properties
+  {
+    name: "L4VFX",
+    description:
+      "Optimized web app for video VFX with fast browser-based effect passes, stylized processing, and lightweight workflows.",
+    color: "#2f7cff",
+    ledColor: "#7ab7ff",
+    url: "https://anthonyasc5.github.io/L4VFX/",
+    status: "in-progress",
+    size: "small",
+  },
+  // Slowed + Reverb pedal properties
   {
     name: "Slowed + Reverb",
     description:
@@ -42,6 +68,7 @@ const pedals = [
     status: "coming-soon",
     size: "xsmall",
   },
+  // Kinect Engine pedal properties
   {
     name: "Kinect Engine",
     description:
@@ -52,6 +79,7 @@ const pedals = [
     status: "coming-soon",
     size: "xsmall",
   },
+  // Vibe Sync pedal properties
   {
     name: "Vibe Sync",
     description:
@@ -464,6 +492,29 @@ function layoutConfig(name, config) {
         { x: config.width * 0.34, z: config.depth * 0.28, r: 0.052 },
       ],
     },
+    DATAMOSH: {
+      screen: { x: -config.width * 0.02, z: -config.depth * 0.18, w: config.width * 0.54, h: config.depth * 0.16 },
+      label: { x: 0, z: config.depth * 0.02, w: config.width * 0.84, h: config.depth * 0.19 },
+      status: { x: 0, z: config.depth * 0.35, w: config.width * 0.62, h: config.depth * 0.08 },
+      footswitch: { x: -config.width * 0.08, z: config.depth * 0.24 },
+      led: { x: config.width * 0.28, z: -config.depth * 0.3 },
+      knobs: [
+        { x: -config.width * 0.24, z: config.depth * 0.2, r: 0.06 },
+        { x: config.width * 0.22, z: config.depth * 0.16, r: 0.055 },
+      ],
+    },
+    L4VFX: {
+      screen: { x: 0, z: -config.depth * 0.17, w: config.width * 0.52, h: config.depth * 0.15 },
+      label: { x: 0, z: config.depth * 0.04, w: config.width * 0.78, h: config.depth * 0.18 },
+      status: { x: 0, z: config.depth * 0.35, w: config.width * 0.54, h: config.depth * 0.08 },
+      footswitch: { x: config.width * 0.02, z: config.depth * 0.24 },
+      led: { x: -config.width * 0.28, z: -config.depth * 0.31 },
+      knobs: [
+        { x: -config.width * 0.28, z: config.depth * 0.18, r: 0.05 },
+        { x: 0, z: config.depth * 0.13, r: 0.057 },
+        { x: config.width * 0.28, z: config.depth * 0.18, r: 0.05 },
+      ],
+    },
     "Slowed + Reverb": {
       screen: { x: -config.width * 0.05, z: -config.depth * 0.18, w: config.width * 0.56, h: config.depth * 0.17 },
       label: { x: 0, z: config.depth * 0.02, w: config.width * 0.84, h: config.depth * 0.22 },
@@ -502,6 +553,26 @@ function layoutConfig(name, config) {
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min);
+}
+
+function getPedalStatusLabel(pedal) {
+  if (pedal.status === "in-progress") {
+    return "IN PROGRESS";
+  }
+
+  if (pedal.status === "live") {
+    return "LIVE";
+  }
+
+  return "COMING SOON";
+}
+
+function getPedalScreenMessage(pedal) {
+  if (pedal.status === "in-progress") {
+    return { text: "IN\nPROGRESS", color: "#8dc7ff" };
+  }
+
+  return { text: "COMING\nSOON", color: "#ffc27f" };
 }
 
 function updateScreen(pedalObject, text, color) {
@@ -716,7 +787,7 @@ function createPedal(pedal, position, tilt) {
   const status = new THREE.Mesh(
     new THREE.PlaneGeometry(layout.status.w, layout.status.h),
     new THREE.MeshBasicMaterial({
-      map: createScreenTexture(pedal.status === "live" ? "LIVE" : "COMING SOON", "#1a1a1a"),
+      map: createScreenTexture(getPedalStatusLabel(pedal), "#1a1a1a"),
       transparent: true,
     })
   );
@@ -1073,18 +1144,28 @@ function main() {
   });
   createComingSoonGraffiti(new THREE.Vector3(-7.45, .2, 0));
 
-  const positions = [
-    new THREE.Vector3(-2.25, 0.24, 0.05),
-    new THREE.Vector3(0, 0.28, 0.02),
-    new THREE.Vector3(2.25, 0.22, 0.06),
-    new THREE.Vector3(-7.25, -0.14, 1.5),
-    new THREE.Vector3(-6.25, -0.12, 1.5),
-    new THREE.Vector3(-5.25, -0.14, 1.5),
+  const pedalPlacements = [
+    // Blob Tracker pedal placement
+    { position: new THREE.Vector3(-2.25, 0.24, 0.05), tilt: -0.03 },
+    // Depth Engine pedal placement
+    { position: new THREE.Vector3(0, 0.28, 0.02), tilt: 0.01 },
+    // Portfolio pedal placement
+    { position: new THREE.Vector3(2.25, 0.22, 0.06), tilt: -0.02 },
+    // DATAMOSH pedal placement
+    { position: new THREE.Vector3(-1.2, 0.16, 1.72), tilt: 0.03 },
+    // L4VFX pedal placement
+    { position: new THREE.Vector3(1.2, 0.16, 1.72), tilt: -0.03 },
+    // Slowed + Reverb pedal placement
+    { position: new THREE.Vector3(-7.25, -0.14, 1.5), tilt: 0.05 },
+    // Kinect Engine pedal placement
+    { position: new THREE.Vector3(-6.25, -0.12, 1.5), tilt: -0.03 },
+    // Vibe Sync pedal placement
+    { position: new THREE.Vector3(-5.25, -0.14, 1.5), tilt: 0.04 },
   ];
-  const tilts = [-0.03, 0.01, -0.02, 0.05, -0.03, 0.04];
 
   pedals.forEach((pedal, index) => {
-    createPedal(pedal, positions[index], tilts[index]);
+    const placement = pedalPlacements[index];
+    createPedal(pedal, placement.position, placement.tilt);
   });
 
   if (depthEnginePedal) {
@@ -1149,14 +1230,15 @@ function activatePedal(pedalObject) {
   pedalObject.userData.press = 1;
   pedalObject.userData.clickCooldown = performance.now() + 140;
 
-  if (pedal.status === "live" && pedal.url) {
+  if (pedal.url) {
     window.setTimeout(() => {
       window.open(pedal.url, "_blank", "noopener,noreferrer");
     }, 150);
     return;
   }
 
-  updateScreen(pedalObject, "COMING\nSOON", "#ffc27f");
+  const screenMessage = getPedalScreenMessage(pedal);
+  updateScreen(pedalObject, screenMessage.text, screenMessage.color);
   window.setTimeout(() => {
     updateScreen(pedalObject, "READY", "#86f6ff");
   }, 1400);
