@@ -60,3 +60,11 @@ note: started my photography brand
 
 
 
+
+
+
+Milestones in coding / career
+
+April 2 2026 - first time I used Xcode for my OWN personal app. very confusing. I finally got it working on my phone!!! Phase 1 of making an app. this is insane!!
+
+
