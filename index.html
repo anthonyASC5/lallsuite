@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./2dlanding.css">
   <style>
     :root {
       color-scheme: dark;
@@ -553,6 +554,76 @@
 </head>
 <body>
   <div id="app">
+    <main class="desktop-landing" id="desktop-landing" aria-label="Lall Suite desktop project links">
+      <div class="desktop-landing__shell">
+        <div class="desktop-landing__topline desktop-landing__drop" style="--fall-order: 1; --fall-x: -8vw; --fall-spin: -12deg;">
+          <div>
+            <p class="desktop-landing__eyebrow">Anthony Lall</p>
+            <p class="desktop-landing__eyebrow">Desktop suite</p>
+          </div>
+          <div class="desktop-landing__mark" aria-hidden="true">L</div>
+        </div>
+
+        <div class="desktop-landing__hero">
+          <div>
+            <h1 class="desktop-landing__title desktop-landing__drop" style="--fall-order: 2; --fall-x: -12vw; --fall-spin: -9deg;">Lall Suite</h1>
+            <p class="desktop-landing__copy desktop-landing__drop" style="--fall-order: 3; --fall-x: 6vw; --fall-spin: 7deg;">A clean launchpad for video tools, audio experiments, depth engines, and visual work.</p>
+          </div>
+          <button class="desktop-landing__world desktop-landing__drop" id="my-world-button" type="button" aria-label="my world" title="my world" style="--fall-order: 4; --fall-x: 12vw; --fall-spin: 14deg;">
+            <span class="desktop-landing__world-globe" aria-hidden="true">
+              <span class="desktop-landing__world-code">L4</span>
+            </span>
+            <span class="desktop-landing__world-label">my world</span>
+          </button>
+        </div>
+
+        <div class="desktop-landing__list" aria-label="Project links">
+          <a class="desktop-pedal desktop-landing__drop" style="--pedal-color: #ff3dc8; --order: 1; --fall-order: 5; --fall-x: -18vw; --fall-spin: -16deg;" href="https://anthonyasc5.github.io/blobbertrack/">
+            <span class="desktop-pedal__face" aria-hidden="true">
+              <span class="desktop-pedal__creature desktop-pedal__creature--blob"></span>
+            </span>
+            <span>
+              <span class="desktop-pedal__name">Blob Tracker</span>
+              <span class="desktop-pedal__desc">Motion tracking, reactive blobs, and video experiments.</span>
+            </span>
+            <span class="desktop-pedal__status">Live</span>
+          </a>
+
+          <a class="desktop-pedal desktop-landing__drop" style="--pedal-color: #ef1f1f; --order: 2; --fall-order: 6; --fall-x: 16vw; --fall-spin: 18deg;" href="https://anthonyasc5.github.io/datamoshme/">
+            <span class="desktop-pedal__face" aria-hidden="true">
+              <span class="desktop-pedal__creature desktop-pedal__creature--demon">
+                <span class="desktop-pedal__creature-eye"></span>
+                <span class="desktop-pedal__creature-eye"></span>
+              </span>
+            </span>
+            <span>
+              <span class="desktop-pedal__name">Datamosh</span>
+              <span class="desktop-pedal__desc">Broken-frame transitions and compression glitches.</span>
+            </span>
+            <span class="desktop-pedal__status">Build</span>
+          </a>
+
+          <a class="desktop-pedal desktop-landing__drop" style="--pedal-color: #8b3dff; --order: 3; --fall-order: 7; --fall-x: -10vw; --fall-spin: 12deg;" href="https://anthonyasc5.github.io/L4VFX/">
+            <span class="desktop-pedal__face">VFX</span>
+            <span>
+              <span class="desktop-pedal__name">L4VFX</span>
+              <span class="desktop-pedal__desc">Fast browser video effects and stylized processing.</span>
+            </span>
+            <span class="desktop-pedal__status">Build</span>
+          </a>
+
+          <a class="desktop-pedal desktop-landing__drop" style="--pedal-color: #3f7dff; --order: 4; --fall-order: 8; --fall-x: 18vw; --fall-spin: -14deg;" href="https://anthonyasc5.github.io/anthonys-project/">
+            <span class="desktop-pedal__face">PF</span>
+            <span>
+              <span class="desktop-pedal__name">Portfolio</span>
+              <span class="desktop-pedal__desc">Projects, prototypes, visuals, and creative work.</span>
+            </span>
+            <span class="desktop-pedal__status">Live</span>
+          </a>
+        </div>
+      </div>
+    </main>
+
     <main class="mobile-suite" aria-label="Lall Suite mobile project links">
       <div class="mobile-suite__shell">
         <div class="mobile-suite__topline">
@@ -633,9 +704,97 @@
       <input id="people-toggle" type="checkbox" checked>
     </label>
 
+    <button class="world-return" id="world-return" type="button">Back to suite</button>
+
+    <div class="world-loader" id="world-loader" role="status" aria-live="polite" aria-hidden="true">
+      <div class="world-loader__panel">
+        <div class="world-loader__label">
+          <span>Loading world</span>
+          <span id="world-loader-percent">0%</span>
+        </div>
+        <div class="world-loader__track" aria-hidden="true">
+          <div class="world-loader__bar" id="world-loader-bar"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="footer-note">Hover pedals or the studio computer. Click to launch or boot.</div>
   </div>
 
   <script type="module" src="./script.js"></script>
+  <script>
+    (() => {
+      const landing = document.querySelector("#desktop-landing");
+      const worldButton = document.querySelector("#my-world-button");
+      const worldReturn = document.querySelector("#world-return");
+      const loader = document.querySelector("#world-loader");
+      const loaderPercent = document.querySelector("#world-loader-percent");
+      const loaderBar = document.querySelector("#world-loader-bar");
+
+      if (!landing || !worldButton || !worldReturn || !loader || !loaderPercent || !loaderBar) {
+        return;
+      }
+
+      function runLoader(complete) {
+        const duration = 3000;
+        const start = performance.now();
+
+        loader.classList.add("is-visible");
+        loader.setAttribute("aria-hidden", "false");
+        loaderPercent.textContent = "0%";
+        loaderBar.style.width = "0%";
+
+        function tick(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          const percent = Math.floor(progress * 100);
+
+          loaderPercent.textContent = `${percent}%`;
+          loaderBar.style.width = `${percent}%`;
+
+          if (progress < 1) {
+            requestAnimationFrame(tick);
+            return;
+          }
+
+          complete();
+          loader.classList.remove("is-visible");
+          loader.setAttribute("aria-hidden", "true");
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      worldButton.addEventListener("click", () => {
+        if (landing.classList.contains("is-falling")) {
+          return;
+        }
+
+        landing.classList.add("is-falling");
+        window.setTimeout(() => {
+          runLoader(() => {
+            document.body.classList.add("world-open");
+            landing.setAttribute("aria-hidden", "true");
+          });
+        }, 1050);
+      });
+
+      worldReturn.addEventListener("click", () => {
+        document.body.classList.remove("world-open");
+        landing.classList.remove("is-falling");
+        landing.removeAttribute("aria-hidden");
+        loader.classList.remove("is-visible");
+        loader.setAttribute("aria-hidden", "true");
+        loaderPercent.textContent = "0%";
+        loaderBar.style.width = "0%";
+      });
+
+      const openWorldFromUrl = new URLSearchParams(window.location.search).get("world") === "1";
+      if (openWorldFromUrl) {
+        document.body.classList.add("world-open");
+        landing.setAttribute("aria-hidden", "true");
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    })();
+  </script>
 </body>
 </html>
